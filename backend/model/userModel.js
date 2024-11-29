@@ -22,12 +22,21 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("user", userSchema);
-
 userSchema.pre("save", async function (next) {
-  // Hash the password if it is new or modified
-  if (this.isNew || this.isModified("password")) {
+  if (this.isModified("password")) {
+    console.log("Hashing password:", this.password); // Log password before hashing
     this.password = await bcrypt.hash(this.password, 10);
+    console.log("Hashed password:", this.password); // Log hashed password
   }
   next();
 });
+
+// checking password is correct or not
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+module.exports = mongoose.model("user", userSchema);
